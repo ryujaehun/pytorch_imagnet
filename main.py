@@ -19,15 +19,15 @@ from tensorboardX import SummaryWriter
 import yaml
 
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
-parser.add_argument('data', metavar='DIR',
+parser.add_argument('--data', metavar='DIR',default='data',
                     help='path to dataset')
-parser.add_argument('--cuda', action='store_true', help='use cuda?')
+parser.add_argument('--cuda', action='store_true', help='use cuda?',default=True)
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
 parser.add_argument('--config', default='configs/config_resnetv1sn50.yaml')
 
 best_prec1 = 0
-ITER_COMPUTE_BATCH_AVEARGE = 200
+
 
 def main():
     global args, best_prec1
@@ -46,10 +46,8 @@ def main():
 
     # create model
     print("=> creating model '{}'".format(args.model))
-    if 'resnetv1sn' in args.model:
-        model = models.__dict__[args.model](using_moving_average = args.using_moving_average, using_bn=args.using_bn, last_gamma=args.last_gamma)
-    else:
-        model = models.__dict__[args.model](using_moving_average=args.using_moving_average, using_bn=args.using_bn)
+
+    model = models.__dict__[args.model](pretrained=args.pretrained)
 
     if args.cuda:
         model = torch.nn.DataParallel(model).cuda()
@@ -132,18 +130,8 @@ def main():
       train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
       num_workers=args.workers, pin_memory=True, sampler=train_sampler)
 
-    if not args.using_moving_average:
-        train_dataset_snhelper = datasets.ImageFolder(
-          traindir,
-          transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            normalize,
-          ]))
-        train_loader_snhelper = torch.utils.data.DataLoader(
-          train_dataset_snhelper, batch_size=args.batch_size * torch.cuda.device_count(), shuffle=(train_sampler is None),
-          num_workers=args.workers, pin_memory=True, sampler=train_sampler)
+
+
 
     niters = len(train_loader)
 
@@ -158,8 +146,8 @@ def main():
         else:
             train(train_loader, model, criterion, optimizer, lr_scheduler, epoch, writer)
 
-        if not args.using_moving_average:
-            sn_helper(train_loader_snhelper, model)
+
+
 
         # evaluate on validation set
         prec1 = validate(val_loader, model, criterion, epoch, writer)
@@ -225,28 +213,7 @@ def train(train_loader, model, criterion, optimizer, lr_scheduler, epoch, writer
             writer.add_scalar('Train/Avg_Top1', top1.avg / 100.0, niter)
             writer.add_scalar('Train/Avg_Top5', top5.avg / 100.0, niter)
 
-def sn_helper(train_loader, model):
 
-  model.train()
-
-  for name, param in model.state_dict().items():
-    if 'running_mean' in name:
-      param.fill_(0)
-    elif 'running_var' in name:
-      param.fill_(0)
-
-  with torch.no_grad():
-    for i, (input, target) in enumerate(train_loader):
-      if i == ITER_COMPUTE_BATCH_AVEARGE:
-        break
-      # target = target.cuda(non_blocking=True)
-      model(input)
-
-  for name, param in model.state_dict().items():
-    if 'running_mean' in name:
-      param /= ITER_COMPUTE_BATCH_AVEARGE
-      model.state_dict()[name.replace('running_mean', 'running_var')] /= ITER_COMPUTE_BATCH_AVEARGE
-      model.state_dict()[name.replace('running_mean', 'running_var')] -= param ** 2
 
 def validate(val_loader, model, criterion, epoch, writer):
     batch_time = AverageMeter()

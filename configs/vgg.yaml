@@ -1,5 +1,5 @@
 TRAIN:
-    model: resnetv1sn50
+    model: vgg19
     workers: 8
     batch_size: 64
     epochs: 120
@@ -9,15 +9,16 @@ TRAIN:
     warmup_epochs: 5
     warmup_lr: 0.0
     targetlr : 0.0
-
+    #lr_mode : step
+    #base_lr: 0.1
+    #decay_factor : 0.1
+    #step : 30,60,90
     momentum: 0.9
     weight_decay: 0.0001
     pretrained: True
-    using_moving_average : True
-    last_gamma : True
 
     print_freq: 10
-    model_dir: checkpoint/resnetv1sn50_cosine
+    model_dir: checkpoint/vgg
 
 TEST:
-    checkpoint_path : data/pretrained_model/ResNet50v1+SN(8,32)-77.49.pth
+    checkpoint_path : data/vgg-77.49.pth
