@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
 import math
 
+from digit.liner import *
 
 __all__ = [
     'VGG', 'vgg11', 'vgg11_bn', 'vgg13', 'vgg13_bn', 'vgg16', 'vgg16_bn',
@@ -27,13 +28,13 @@ class VGG(nn.Module):
         super(VGG, self).__init__()
         self.features = features
         self.classifier = nn.Sequential(
-            nn.Linear(512 * 7 * 7, 4096),
+            QuantizedLinear(512 * 7 * 7, 4096),
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(4096, 4096),
+            QuantizedLinear(4096, 4096),
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(4096, num_classes),
+            QuantizedLinear(4096, num_classes),
         )
         if init_weights:
             self._initialize_weights()
