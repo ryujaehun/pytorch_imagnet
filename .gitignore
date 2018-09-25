@@ -1,6 +1,15 @@
 /data
+checkpoint
+*.index
+*.meta
+*.tar.gz
+*.ckpt
+*.pth
+*.ckpt.data*
 *.JPEG
 *.tar
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

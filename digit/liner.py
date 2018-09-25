@@ -5,7 +5,7 @@ from torch.nn import Module
 from torch.nn.parameter import Parameter
 
 from digit.quantization_scheme import WeightQuantizationScheme, ActivationQuantizationScheme, BiasQuantizationScheme
-from digit.quantized_linear import quantized_linear, quantized_linear_hls_weight_string, quantized_linear_hls_bias_string
+from digit.quantized_linear import quantized_linear
 
 class QuantizedLinear(Module):
 
@@ -32,13 +32,7 @@ class QuantizedLinear(Module):
     def forward(self, input):
         return quantized_linear(input, self.weight, self.weight_quantization_scheme, self.bias, self.bias_quantization_scheme)
 
-    def hls_weight_string(self, factor, hls_var_name='wfc'):
-        weight = torch.cat((self.weight.data[:, :self.in_features/factor], self.weight.data[:, self.in_features/factor:self.in_features]), 0).t().cpu()
-        return quantized_linear_hls_weight_string(weight, self.weight_quantization_scheme, hls_var_name)
 
-    def hls_bias_string(self, factor, hls_var_name='bfc'):
-        bias = torch.cat((self.bias.data.cpu(), torch.zeros((factor - 1) * self.out_features)), 0).expand(1, -1)
-        return quantized_linear_hls_bias_string(bias, self.bias_quantization_scheme, hls_var_name)
 
     def __repr__(self):
         return self.__class__.__name__ + '(' \

@@ -18,21 +18,26 @@ from utils import LRScheduler, ColorAugmentation
 from tensorboardX import SummaryWriter
 import yaml
 
+
+from six import text_type as _text_type
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 parser.add_argument('--data', metavar='DIR',default='data',
                     help='path to dataset')
 parser.add_argument('--cuda', action='store_true', help='use cuda?',default=True)
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
-parser.add_argument('--config', default='configs/config_resnetv1sn50.yaml')
+parser.add_argument('--config', default='configs/resnet_v2_152.yaml')
+
 
 best_prec1 = 0
+from importlib import import_module
+
 
 
 def main():
     global args, best_prec1
     args = parser.parse_args()
-    args.using_bn = True
+
     with open(args.config) as f:
         config = yaml.load(f)
 
@@ -42,12 +47,22 @@ def main():
 
 
 
+    #
+    import subprocess
+    import imp
+    import numpy as np
 
+    proc = subprocess.Popen( 'mmdownload -f '+args.f+' -n '+args.n+' -o ./models/'+args.f+'_'+args.n+'/' , shell=True, executable='/bin/bash')
+    proc.communicate()
+    proc = subprocess.Popen( 'mmconvert -sf '+args.srcFramework+' -in models/'+args.f+'_'+args.n+'/imagenet_'+args.n+'.ckpt.meta -iw models/'+args.f+'_'+args.n+'/imagenet_'+args.n+'.ckpt --dstNodeName MMdnn_Output -df '+args.dstFramework+' -om models/'+args.n+'.pth' , shell=True, executable='/bin/bash')
+    proc.communicate()
 
-    # create model
     print("=> creating model '{}'".format(args.model))
+    MainModel = imp.load_source('MainModel', "models/"+args.n+".py")
+    model = torch.load("models/"+args.n+".pth")
 
-    model = models.__dict__[args.model](pretrained=args.pretrained)
+
+
 
     if args.cuda:
         model = torch.nn.DataParallel(model).cuda()

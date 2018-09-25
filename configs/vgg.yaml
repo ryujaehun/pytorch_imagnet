@@ -1,5 +1,5 @@
 TRAIN:
-    model: vgg19
+    model: resnet_v2_152
     workers: 8
     batch_size: 64
     epochs: 120
@@ -16,6 +16,18 @@ TRAIN:
     momentum: 0.9
     weight_decay: 0.0001
     pretrained: True
+
+    f: tensorflow # input framework $ using mmdownload
+    n: resnet_v2_152 # input file name $ using mmdownload
+    sf: tensorflow # input framework $ using mmconvert
+    in: imagenet_resnet_v2_152.ckpt.meta #input architecture file
+    iw: imagenet_resnet_v2_152.ckpt #input data file
+    dstNodeName: MMdnn_Output
+    df: pytorch # output framework
+    om: resnet_v2_152.pth # output weight
+
+
+
 
     print_freq: 10
     model_dir: checkpoint/vgg
