@@ -1,5 +1,5 @@
 TRAIN:
-    model: mobilenet_v2_1.0_224
+    model: mobilenet_v2_1
     workers: 8
     batch_size: 64
     epochs: 120

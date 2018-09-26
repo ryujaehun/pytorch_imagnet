@@ -16,8 +16,11 @@ import models
 import utils
 from utils import LRScheduler, ColorAugmentation
 from tensorboardX import SummaryWriter
-import yaml
 
+import yaml
+import subprocess
+import imp
+import numpy as np
 
 from six import text_type as _text_type
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
@@ -47,20 +50,16 @@ def main():
 
 
 
-    #
-    import subprocess
-    import imp
-    import numpy as np
+
+
 
     proc = subprocess.Popen( 'mmdownload -f '+args.f+' -n '+args.n+' -o ./models/'+args.f+'_'+args.n+'/' , shell=True, executable='/bin/bash')
     proc.communicate()
-    proc = subprocess.Popen( 'mmconvert -sf '+args.srcFramework+' -in models/'+args.f+'_'+args.n+'/imagenet_'+args.n+'.ckpt.meta -iw models/'+args.f+'_'+args.n+'/imagenet_'+args.n+'.ckpt --dstNodeName MMdnn_Output -df '+args.dstFramework+' -om models/'+args.n+'.pth' , shell=True, executable='/bin/bash')
+    proc = subprocess.Popen( 'mmconvert -sf '+args.srcFramework+' --inputShape 224,224,3 -in models/'+args.f+'_'+args.n+'/imagenet_'+args.n+'.ckpt.meta -iw models/'+args.f+'_'+args.n+'/imagenet_'+args.n+'.ckpt --dstNodeName MMdnn_Output -df '+args.dstFramework+' -om models/'+args.n+'.pth' , shell=True, executable='/bin/bash')
     proc.communicate()
 
-    print("=> creating model '{}'".format(args.model))
-    MainModel = imp.load_source('MainModel', "models/"+args.n+".py")
+    MainModel = imp.load_source('MainModel', "models/"+args.model+".py")
     model = torch.load("models/"+args.n+".pth")
-
 
 
 
@@ -85,7 +84,9 @@ def main():
     if not os.path.exists(model_dir) :
         os.makedirs(model_dir)
     if args.evaluate:
-        utils.load_state_ckpt(args.checkpoint_path, model)
+        pass
+
+
     else:
         best_prec1, start_epoch = utils.load_state(model_dir, model, optimizer=optimizer)
     writer = SummaryWriter(model_dir)
@@ -119,7 +120,7 @@ def main():
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            ColorAugmentation(),
+        #    ColorAugmentation(),
             normalize,
         ]))
 
@@ -130,7 +131,7 @@ def main():
         transforms.CenterCrop(224),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
-        ColorAugmentation(),
+        #ColorAugmentation(),
         normalize,
       ]))
 
@@ -237,11 +238,12 @@ def validate(val_loader, model, criterion, epoch, writer):
     top5 = AverageMeter()
 
     # switch to evaluate mode
-    model.eval()
+    model=model.eval()
 
     with torch.no_grad():
         end = time.time()
         for i, (input, target) in enumerate(val_loader):
+
             target = target.cuda(non_blocking=True)
 
             # compute output

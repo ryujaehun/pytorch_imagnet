@@ -1,7 +1,7 @@
 TRAIN:
-    model: resnet_v2_152
-    workers: 6
-    batch_size: 32
+    model: inception_resnet_v2
+    workers: 8
+    batch_size: 64
     epochs: 120
 
     lr_mode : cosine
@@ -9,23 +9,24 @@ TRAIN:
     warmup_epochs: 5
     warmup_lr: 0.0
     targetlr : 0.0
-
+    #lr_mode : step
+    #base_lr: 0.1
+    #decay_factor : 0.1
+    #step : 30,60,90
     momentum: 0.9
     weight_decay: 0.0001
     pretrained: True
 
     f: tensorflow # input framework $ using mmdownload
-    n: resnet_v2_152 # input file name $ using mmdownload
+    n: inception_resnet_v2 # input file name $ using mmdownload
     srcFramework: tensorflow # input framework $ using mmconvert
 
     dstFramework: pytorch # output framework
 
 
 
-
-
     print_freq: 10
-    model_dir: checkpoint/resnet_v2_152
+    model_dir: checkpoint/inception_resnet_v2
 
 TEST:
-    checkpoint_path : data/resnet_v2_152.pth
+    checkpoint_path : models/inception_resnet_v2.pth

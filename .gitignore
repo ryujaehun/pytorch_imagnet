@@ -8,8 +8,14 @@ checkpoint
 *.ckpt.data*
 *.JPEG
 *.tar
-
-
+*.graph
+*.tgz
+*.pbtxt
+*.pb
+*.txt
+*.tflite
+*.json
+*.npy
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
